@@ -8,6 +8,8 @@ public enum ErrorResponse {
 
     INTERNAL_SERVER_ERROR("Internal server error"),
 
+    INVALID_AGE("Invalid age"),
+
     NO_VALID_LOAN("No valid loan found!");
 
     private final String message;

@@ -10,6 +10,8 @@ import ee.taltech.inbankbackend.endpoint.DecisionResponse;
 
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 /**
  * A service class that provides a method for calculating an approved loan amount and period for a customer.
  * The loan amount is calculated based on the customer's credit modifier,
@@ -30,9 +32,7 @@ public class DecisionEngine {
                 throw new ErrorResponseException(ErrorResponse.NO_VALID_LOAN);
             }
             double creditScore = ((double) creditModifier / request.getLoanAmount()) * request.getLoanPeriod();
-
             Decision decision = determineDecision(creditScore);
-
             if (decision == Decision.APPROVED) {
                 return (DecisionResponse) calculateApprovedLoanAmount(request, creditModifier);
             } else {
@@ -55,6 +55,11 @@ public class DecisionEngine {
         if (request.getLoanPeriod() < DecisionEngineConstants.MINIMUM_LOAN_PERIOD ||
                 request.getLoanPeriod() > DecisionEngineConstants.MAXIMUM_LOAN_PERIOD) {
             throw new ErrorResponseException(ErrorResponse.INVALID_LOAN_PERIOD);
+        }
+        int customerAge = getCustomerAge(request.getPersonalCode());
+        if (customerAge < DecisionEngineConstants.MINIMUM_CUSTOMER_AGE ||
+                customerAge > DecisionEngineConstants.MAXIMUM_CUSTOMER_AGE) {
+            throw new ErrorResponseException(ErrorResponse.INVALID_AGE);
         }
     }
 
@@ -103,5 +108,24 @@ public class DecisionEngine {
         }
 
         return new ErrorResponseException(ErrorResponse.NO_VALID_LOAN);
+    }
+
+    private int getBirthYearFromPersonalCode(String personalCode) {
+        int birthYearInCentury = Integer.parseInt(personalCode.substring(1, 3));
+        int firstDigit = Character.getNumericValue(personalCode.charAt(0));
+        int birthCentury = 0;
+
+        if (firstDigit == 3 || firstDigit == 4) {
+            birthCentury = 1900;
+        } else if (firstDigit == 5 || firstDigit == 6) {
+            birthCentury = 2000;
+        }
+        return birthCentury + birthYearInCentury;
+    }
+
+    private int getCustomerAge(String personalCode) {
+        int birthYear = getBirthYearFromPersonalCode(personalCode);
+        int currentYear = LocalDate.now().getYear();
+        return currentYear - birthYear;
     }
 }

@@ -57,11 +57,9 @@ class DecisionEngineTest {
 
 
     @Test
-    void testSegment3PersonalCode() throws ErrorResponseException {
-        DecisionResponse response = decisionEngine.processDecisionRequest(new DecisionRequest(segment3PersonalCode, 4000L, 12));
-        assertEquals(Decision.APPROVED, response.getDecision());
-        assertEquals(10000, response.getApprovedLoanAmount());
-        assertEquals(12, response.getApprovedLoanPeriod());
+    void testInvalidAge()  {
+        DecisionRequest request= new DecisionRequest(segment3PersonalCode, 4000L, 12);
+        assertThrows(ErrorResponseException.class, () -> decisionEngine.processDecisionRequest(request));
     }
 
     @Test
